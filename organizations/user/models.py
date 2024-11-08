@@ -1,7 +1,9 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from organization.models import Organization
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from PIL import Image
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -35,6 +37,28 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+    def save(self, *args, **kwargs):
+        # Изменение размера изображения
+        if self.avatar:
+            img = Image.open(self.avatar)
+            img.thumbnail((200, 200))  # Изменяем размер до 200x200
 
+            # Сохраняем изображение обратно в поле avatar
+            # Сначала создаем буфер
+            from io import BytesIO
+            from django.core.files.base import ContentFile
+
+            thumb_io = BytesIO()
+            img.save(thumb_io, format='JPEG', quality=85) # Сохраняем изображение в буфер
+            thumb_file = ContentFile(thumb_io.getvalue(), name=self.avatar.name)
+            self.avatar.save(thumb_file.name, thumb_file, save=False)
+
+        super().save(*args, **kwargs)
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return{
+            'refresh':str(refresh),
+            'access':str(refresh.access_token)
+        }
     def __str__(self):
         return self.email
