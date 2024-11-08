@@ -6,8 +6,6 @@ from .serializers import RegisterSerializer,LoginSerializer,LogoutSerializer, Ed
 from rest_framework import generics, status
 from .models import User
 
-# Create your views here.
-
 class RegisterView(generics.GenericAPIView):
     serializer_class = RegisterSerializer
     def post(self,request):
@@ -46,7 +44,7 @@ class EditUserProfileView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-# вывод всех пользователей
+
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -55,7 +53,7 @@ class UserListView(generics.ListAPIView):
         users = User.objects.all()
         serializer = self.serializer_class(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-# вывод пользователя по id
+
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer

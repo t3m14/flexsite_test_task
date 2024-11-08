@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import User  # Your custom User model
+from .models import User
 from django.contrib import auth
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from organization.models import Organization
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(max_length=68, min_length=6, write_only=True)
+    password = serializers.CharField(max_length=68, min_length=6, write_only=True, allow_blank=False)
     
     class Meta:
         model = User
@@ -39,12 +39,11 @@ class LoginSerializer(serializers.ModelSerializer):
         if not user.is_active:
             raise AuthenticationFailed('Account disabled, contact admin')
 
-        # Return necessary user information including tokens
         return {
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'tokens': user.tokens(),  # Assuming your user model has this method
+            'tokens': user.tokens(),
         }
 
 class LogoutSerializer(serializers.Serializer):
@@ -79,7 +78,7 @@ class EditUserProfileSerializer(serializers.ModelSerializer):
         instance.avatar = validated_data.get('avatar', instance.avatar)
 
         organizations_data = validated_data.get('organizations')
-        if organizations_data is not None:  # If organizations are provided
+        if organizations_data is not None:
             instance.organizations.set(organizations_data)
 
         instance.save()
@@ -88,7 +87,7 @@ class EditUserProfileSerializer(serializers.ModelSerializer):
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
-        fields = '__all__'  # Or specify the fields you want to display
+        fields = '__all__' 
 
 class UserSerializer(serializers.ModelSerializer):
     organizations = OrganizationSerializer(many=True, read_only=True)
